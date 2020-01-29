@@ -84,7 +84,7 @@ Data <- Data%>%
     between(h_age_dv, 26, 40) ~ "26 to 40",
     between(h_age_dv, 41, 55) ~ "41 to 55",
     between(h_age_dv, 56, 70) ~ "56 to 70",
-    h_age_dv >= 70 ~ "over 70"
+    h_age_dv > 70 ~ "over 70"
   ))
 
 
