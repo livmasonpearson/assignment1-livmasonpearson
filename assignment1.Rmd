@@ -1,12 +1,14 @@
 ---
 title: "Statistical assignment 1"
-author: "[add your name and candidate number here]"
-date: "[add date here]"
+author: "Olivia Mason Pearson, 670025149"
+date: "29/01/2020"
 output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
 ```
 
 ## Open data (10 points)
@@ -15,7 +17,8 @@ In this assignment you will work with the individual level data from wave 8 of t
 
 ```{r}
 library(tidyverse)
-Data <- ...
+setwd("/Users/LIV/Desktop/DATA ANALYSIS")
+Data <- read_tsv("/Users/LIV/Desktop/DATA ANALYSIS/DATA ANALYSIS III/UKDA-6614-tab/tab/ukhls_w8/h_indresp.tab")
 ```
 
 Now you have got your data frame stored as Data. 
@@ -29,8 +32,9 @@ First, you need to select the variables for the analysis. You want to keep the f
 Complete the code below to select those variables from the data frame and save the result.
 
 ```{r}
+library(dplyr)
 Data <- Data %>%
-        select(...)
+        select(pidp, h_memorig, h_eumem, h_sex_dv, h_age_dv)
 ```
 
 ## Filter observations (10 points)
@@ -39,7 +43,7 @@ To make nationally representative estimates from the Understanding Society data 
 
 ```{r}
 Data <- Data %>%
-        filter(...)
+        filter(h_memorig==1)
 ```
 
 ## Recode data (20 points)
@@ -64,14 +68,32 @@ In all cases, we want to create new variables.
 
 ```{r}
 Data <- Data %>%
-        mutate(EU = ...
-      
-        ) %>%
-        mutate(sex = ...) %>%
-        mutate(agegr = ...
-        )
+        mutate(EU = ifelse(
+          h_eumem == 1,1,
+          ifelse(h_eumem == 2, 0, NA)))
 
-```
+        
+Data <- Data %>%
+  mutate(sex = ifelse(h_sex_dv == 1, "male",
+                            ifelse(h_sex_dv == 2, "female", NA)))
+
+
+Data <- Data%>%
+  mutate(agegr = case_when(
+    between(h_age_dv, 16, 25) ~ "16 to 25",
+    between(h_age_dv, 26, 40) ~ "26 to 40",
+    between(h_age_dv, 41, 55) ~ "41 to 55",
+    between(h_age_dv, 56, 70) ~ "56 to 70",
+    h_age_dv >= 70 ~ "over 70"
+  ))
+
+
+table(Data$EU, useNA = "always")
+table(Data$sex, useNA = "always")
+table(Data$agegr, useNA = "always")
+
+````
+
 
 ## Summarise data (20 points)
 
@@ -79,11 +101,16 @@ Let us **dplyr** to calculate how many people in the sample supported Remain and
 
 ```{r}
 Data %>%
-        ...
-        
+  count(EU) %>%
+  mutate(perc = n/sum(n) *100)
 ```
 
 Write a couple of sentences with the interpretation of this result. How this compares with the result of the 2016 referendum? Why?
+
+From this result, I can see that 48.43%, or 48%, of people voted to Remain, and 40.7, or 41% voted to Leave the EU. This differs to the actual result of the 2016 referendum with, 
+according to the BBC, 51.9% voting to Leave and 48.1% voting to Remain. Considering this large
+difference in Leave votes, I can assume that those that refused, inapplicable, proxy or
+otherwise (NA) voted Leave, as it accounted for nearly 11% of all respondents. 
 
 ## Summarise data by sex and age (30 points)
 
@@ -92,9 +119,11 @@ Now let us look at the support for Leave and Remain by sex and age. Use your new
 
 ```{r}
 Data %>%
-        ...
-        
+  group_by(agegr, sex) %>%
+  summarise(propEU = mean(EU, na.rm = TRUE) * 100)
 ```
 
 
 Write a couple of sentences interpreting your results.
+
+These results clearly show a steady decline of Remain votes as age increases. On average, 69% of voters aged 16-25 voted to remain in the EU (66% for males, 73% for females) compared with just 41% of over 70s (44% for females, 38% for males). In addition, I can see that females consistently voted more for remain than males, with at least a 3% increase from male to female in remain votes in every age category.
